@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Saving Yourself — Outreach Mail Merge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F7F4EF; --surface: #FFFFFF; --surface2: #F0EDE7;
+    --border: #E2DDD6; --border-strong: #C8C2B8;
+    --text: #1C1A17; --text2: #6B6560; --text3: #9E9892;
+    --accent: #B85C2A; --accent-light: #F5E8DF; --accent-dark: #8C4220;
+    --success: #2D6A4F; --success-bg: #D8EFDF;
+    --warn: #92600A; --warn-bg: #FEF3DC;
+    --danger: #8B2020; --danger-bg: #FAE0E0;
+    --info: #1A4F7A; --info-bg: #DCEEF9;
+    --radius: 8px; --radius-lg: 14px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04);
+  }
+  body { font-family: 'DM Sans', sans-serif; font-weight: 400; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .header { background: var(--text); color: #F7F4EF; padding: 1.25rem 2rem; display: flex; align-items: center; gap: 1rem; border-bottom: 3px solid var(--accent); }
+  .header-title { font-family: 'DM Serif Display', serif; font-size: 22px; letter-spacing: -0.02em; }
+  .header-sub { font-size: 12px; color: #9E9892; margin-top: 1px; font-weight: 300; letter-spacing: 0.06em; text-transform: uppercase; }
+  .layout { display: grid; grid-template-columns: 380px 1fr; gap: 0; min-height: calc(100vh - 70px); }
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 1.5rem; overflow-y: auto; }
+  .main { padding: 1.5rem; overflow-y: auto; }
+  .section-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* Google Sheets connect box */
+  .connect-box { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem; }
+  .connect-box p { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 10px; }
+  .connect-box input { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 12px; outline: none; margin-bottom: 8px; }
+  .connect-box input:focus { border-color: var(--accent); }
+  .connect-steps { font-size: 11px; color: var(--text3); line-height: 1.8; margin-bottom: 10px; }
+  .connect-steps span { display: block; }
+  .connected-banner { background: var(--success-bg); color: var(--success); border-radius: var(--radius); padding: 0.6rem 1rem; font-size: 12px; font-weight: 500; margin-bottom: 1rem; display: none; }
+
+  .ctrl-group { margin-bottom: 1.25rem; }
+  .ctrl-label { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; display: block; }
+  select, input[type=number], input[type=text] { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; transition: border-color 0.15s; }
+  select:focus, input:focus { border-color: var(--accent); }
+  .limit-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 5px; }
+  .meter { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .meter-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s; }
+  .meter-fill.full { background: var(--danger); }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.5rem; }
+  .stat { background: var(--bg); border-radius: var(--radius); padding: 0.75rem; border: 1px solid var(--border); }
+  .stat-n { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text); line-height: 1; }
+  .stat-l { font-size: 11px; color: var(--text2); margin-top: 3px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 400; cursor: pointer; transition: all 0.15s; text-decoration: none; white-space: nowrap; }
+  .btn:hover { border-color: var(--border-strong); background: var(--surface2); }
+  .btn-accent { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-accent:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+  .btn-dark { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .btn-dark:hover { background: #2e2b26; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-full { width: 100%; justify-content: center; }
+  .template-section { margin-bottom: 1.5rem; }
+  textarea { width: 100%; min-height: 260px; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; line-height: 1.7; resize: vertical; outline: none; transition: border-color 0.15s; }
+  textarea:focus { border-color: var(--accent); }
+  .tokens { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .token { font-family: 'DM Sans', sans-serif; font-size: 11px; background: var(--accent-light); color: var(--accent-dark); padding: 3px 9px; border-radius: 4px; cursor: pointer; border: 1px solid #E8C9B3; transition: background 0.1s; font-weight: 500; }
+  .token:hover { background: #EDD5C3; }
+  .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .toolbar-right { margin-left: auto; display: flex; gap: 8px; }
+  .email-list { display: flex; flex-direction: column; gap: 10px; }
+  .email-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; transition: all 0.15s; box-shadow: var(--shadow); }
+  .email-card:hover { border-color: var(--border-strong); }
+  .email-card.selected { border-color: var(--accent); background: #FEFAF7; }
+  .email-card.dimmed { opacity: 0.5; }
+  .card-header { display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-family: 'DM Serif Display', serif; font-size: 15px; color: var(--accent-dark); flex-shrink: 0; }
+  .card-meta { flex: 1; min-width: 0; }
+  .card-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-school { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-email-line { font-size: 11px; color: var(--text3); }
+  .card-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 99px; font-weight: 500; }
+  .badge-info { background: var(--info-bg); color: var(--info); }
+  .badge-success { background: var(--success-bg); color: var(--success); }
+  .badge-warn { background: var(--warn-bg); color: var(--warn); }
+  .badge-danger { background: var(--danger-bg); color: var(--danger); }
+  .preview-box { margin-top: 12px; background: var(--bg); border-radius: var(--radius); padding: 1rem; font-size: 12.5px; line-height: 1.75; white-space: pre-wrap; color: var(--text2); display: none; max-height: 300px; overflow-y: auto; border: 1px solid var(--border); animation: fadeIn 0.15s ease; }
+  .preview-box.open { display: block; }
+  .preview-divider { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+  .preview-subject { font-size: 11px; color: var(--text3); }
+  .preview-subject strong { color: var(--text2); }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  .warning-banner { background: var(--warn-bg); color: var(--warn); border-radius: var(--radius); padding: 0.75rem 1rem; font-size: 13px; margin-bottom: 1rem; display: none; border: 1px solid #F5D88A; }
+  .error-banner { background: var(--danger-bg); color: var(--danger); border-radius: var(--radius); padding: 0.75rem 1rem; font-size: 13px; margin-bottom: 1rem; display: none; border: 1px solid #F5AAAA; }
+  .empty { text-align: center; padding: 4rem 2rem; color: var(--text3); }
+  .empty-icon { font-size: 48px; margin-bottom: 1rem; }
+  .empty p { font-size: 14px; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .sidebar { border-right: none; border-bottom: 1px solid var(--border); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="font-size:24px">🔥</div>
+  <div>
+    <div class="header-title">Saving Yourself — Outreach Tool</div>
+    <div class="header-sub">Mail merge &amp; contact tracker</div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+
+    <div class="section-label">Google Sheets connection</div>
+    <div class="connect-box">
+      <p>Paste your Google Sheet link below. Your sheet must be set to <strong>"Anyone with the link can view"</strong> so the tool can read it.</p>
+      <div class="connect-steps">
+        <span>1. Open your tracker in Google Sheets</span>
+        <span>2. Click Share → Change to "Anyone with link"</span>
+        <span>3. Copy the link and paste it below</span>
+      </div>
+      <input type="text" id="sheet-url" placeholder="https://docs.google.com/spreadsheets/d/..." />
+      <button class="btn btn-accent btn-full" onclick="connectSheet()">
+        <span id="connect-btn-text">↻ Load sheet</span>
+      </button>
+      <div style="margin-top:8px;font-size:11px;color:var(--text3)">Re-click "Load sheet" anytime to refresh with your latest data.</div>
+    </div>
+
+    <div class="connected-banner" id="connected-banner">✓ Connected — <span id="connected-name"></span></div>
+
+    <div class="ctrl-group">
+      <label class="ctrl-label">Sheet tab</label>
+      <select id="tab-select" onchange="loadTab()"></select>
+    </div>
+
+    <div class="ctrl-group">
+      <label class="ctrl-label">Filter by status</label>
+      <select id="status-filter" onchange="renderList()">
+        <option value="all">All contacts</option>
+        <option value="Not Contacted" selected>Not contacted only</option>
+        <option value="Email Sent">Email sent</option>
+        <option value="Interested">Interested</option>
+        <option value="Declined">Declined</option>
+        <option value="Book Sent">Book sent</option>
+        <option value="Adopted">Adopted</option>
+      </select>
+    </div>
+
+    <div class="ctrl-group">
+      <label class="ctrl-label">Daily email limit</label>
+      <input type="number" id="daily-limit" value="10" min="1" max="200" step="1" onchange="renderList()" />
+      <div class="limit-row" style="margin-top:8px">
+        <span id="limit-label">0 sent today</span>
+        <span id="limit-remain">10 remaining</span>
+      </div>
+      <div class="meter"><div class="meter-fill" id="meter-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="section-label" style="margin-top:1.5rem">Summary</div>
+    <div class="stats" id="stats">
+      <div class="stat"><div class="stat-n">—</div><div class="stat-l">Total</div></div>
+      <div class="stat"><div class="stat-n">—</div><div class="stat-l">Not contacted</div></div>
+      <div class="stat"><div class="stat-n">—</div><div class="stat-l">Emails sent</div></div>
+      <div class="stat"><div class="stat-n">—</div><div class="stat-l">Interested / adopted</div></div>
+    </div>
+
+    <div class="section-label">Email template</div>
+    <div class="template-section">
+      <label class="ctrl-label">Subject line</label>
+      <input type="text" id="subject-input" style="margin-bottom:10px" value="A Free Book for Your Students — Written by a Fellow First Responder" />
+      <label class="ctrl-label">Personalization tokens — click to insert</label>
+      <div class="tokens">
+        <span class="token" onclick="insertToken('{{director_name}}')">{{director_name}}</span>
+        <span class="token" onclick="insertToken('{{school_name}}')">{{school_name}}</span>
+        <span class="token" onclick="insertToken('{{program_type}}')">{{program_type}}</span>
+        <span class="token" onclick="insertToken('{{city}}')">{{city}}</span>
+        <span class="token" onclick="insertToken('{{state}}')">{{state}}</span>
+      </div>
+      <textarea id="template-body">Dear {{director_name}},
+
+My name is Jeremy Jones. I spent 15 years as a firefighter and paramedic before writing Saving Yourself: A First Responder's Guide to Self-Care, Service, and Success. I wrote it to pass on the knowledge that I wish I'd had when I started.
+
+I'd love to offer you a complimentary evaluation copy, no strings attached, whether as required reading for the course or as a graduation gift from the school. I wrote it in a conversational tone and made the chapters short and easy to digest because I know students are pressed for time and may be tired of reading near the end of their schooling.
+
+The book addresses many things, from situational awareness to noticing signs of burnout and communication strategies for both coworkers and partners alike. It's available on Amazon, but if you find it's a good fit for your program, I'm happy to provide bulk copies at a significant discount over the Amazon price — just reach out directly, and we can work something out.
+
+To receive your free evaluation copy, simply reply to this email with your preferred format:
+• Print copy — I'll get one in the mail to you
+• Digital copy — I'll send a PDF directly to your inbox
+
+Thank you for everything you do to shape the next generation of first responders.
+
+Warm regards,
+Jeremy F. Jones</textarea>
+      <button class="btn btn-sm" style="margin-top:8px" onclick="renderList()">↺ Refresh previews</button>
+    </div>
+
+  </div>
+
+  <div class="main">
+    <div class="warning-banner" id="limit-warning">⚠️ Daily limit reached. Increase the limit or come back tomorrow.</div>
+    <div class="error-banner" id="error-banner"></div>
+
+    <div class="toolbar">
+      <span style="font-size:13px;font-weight:500;color:var(--text2)" id="contact-count">Connect your Google Sheet to get started</span>
+      <div class="toolbar-right">
+        <button class="btn btn-sm" onclick="selectAll()">☑ Select all</button>
+        <button class="btn btn-sm" onclick="clearAll()">☐ Clear</button>
+        <button class="btn btn-dark" onclick="openSelected()">✉ Open selected in email</button>
+      </div>
+    </div>
+
+    <div class="email-list" id="email-list">
+      <div class="empty">
+        <div class="empty-icon">📬</div>
+        <p>Paste your Google Sheets link in the sidebar and click "Load sheet."</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let allContacts = [];
+let sheetData = {};
+let sentToday = {};
+let sentDates = {};
+
+try { sentToday = JSON.parse(localStorage.getItem('sy_sentToday') || '{}'); } catch(e) {}
+try { sentDates = JSON.parse(localStorage.getItem('sy_sentDates') || '{}'); } catch(e) {}
+
+const todayKey = new Date().toDateString();
+if (!sentToday[todayKey]) sentToday[todayKey] = [];
+
+function extractSheetId(url) {
+  const m = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  return m ? m[1] : null;
+}
+
+async function connectSheet() {
+  const url = document.getElementById('sheet-url').value.trim();
+  const sheetId = extractSheetId(url);
+  const btn = document.getElementById('connect-btn-text');
+  const errBanner = document.getElementById('error-banner');
+  errBanner.style.display = 'none';
+
+  if (!sheetId) {
+    errBanner.textContent = 'Could not find a valid Google Sheets ID in that URL. Make sure you copied the full link.';
+    errBanner.style.display = 'block';
+    return;
+  }
+
+  btn.innerHTML = '<span class="spinner"></span> Loading...';
+
+  try {
+    const metaUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=`;
+    const res = await fetch(metaUrl);
+    if (!res.ok) throw new Error('Could not reach the sheet. Make sure sharing is set to "Anyone with the link."');
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47, text.length - 2));
+
+    const tabSel = document.getElementById('tab-select');
+    tabSel.innerHTML = '';
+
+    const sheetsInfoUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`;
+    const infoRes = await fetch(sheetsInfoUrl);
+    const infoText = await infoRes.text();
+    const infoJson = JSON.parse(infoText.substring(47, infoText.length - 2));
+
+    localStorage.setItem('sy_sheetId', sheetId);
+    localStorage.setItem('sy_sheetUrl', url);
+
+    await loadAllTabs(sheetId);
+
+    document.getElementById('connected-banner').style.display = 'block';
+    document.getElementById('connected-name').textContent = url.length > 40 ? url.substring(0, 40) + '...' : url;
+    btn.textContent = '↻ Load sheet';
+  } catch(e) {
+    errBanner.textContent = e.message || 'Failed to load sheet. Check the sharing settings and try again.';
+    errBanner.style.display = 'block';
+    btn.textContent = '↻ Load sheet';
+  }
+}
+
+async function loadAllTabs(sheetId) {
+  const knownTabs = ['Program Tracker', 'Firefighter Programs', 'Sheet1', 'EMS Programs'];
+  const tabSel = document.getElementById('tab-select');
+  tabSel.innerHTML = '';
+  sheetData = {};
+
+  const discovered = [];
+  for (const tab of knownTabs) {
+    try {
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tab)}`;
+      const res = await fetch(url);
+      const text = await res.text();
+      if (text.includes('"status":"error"') || text.includes('Invalid sheet name')) continue;
+      const json = JSON.parse(text.substring(47, text.length - 2));
+      if (json.table && json.table.rows && json.table.rows.length > 0) {
+        discovered.push(tab);
+        sheetData[tab] = json.table;
+      }
+    } catch(e) {}
+  }
+
+  if (discovered.length === 0) {
+    const errBanner = document.getElementById('error-banner');
+    errBanner.textContent = 'No readable sheets found. Try renaming your tabs to "Program Tracker" or "Firefighter Programs".';
+    errBanner.style.display = 'block';
+    return;
+  }
+
+  discovered.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    tabSel.appendChild(opt);
+  });
+
+  loadTab();
+}
+
+function loadTab() {
+  const tabName = document.getElementById('tab-select').value;
+  if (!sheetData[tabName]) return;
+  const table = sheetData[tabName];
+
+  const headers = (table.cols || []).map(c => (c.label || '').trim().toLowerCase());
+  const idx = h => headers.findIndex(x => x.includes(h));
+
+  const iName = idx('director');
+  const iSchool = idx('school') !== -1 ? idx('school') : idx('program');
+  const iEmail = idx('email');
+  const iCity = idx('city');
+  const iState = idx('state');
+  const iType = idx('program type') !== -1 ? idx('program type') : idx('type');
+  const iStatus = idx('status');
+
+  allContacts = (table.rows || [])
+    .map(r => r.c || [])
+    .filter(r => r[iEmail] && r[iEmail] && r[iEmail].v && String(r[iEmail].v).includes('@'))
+    .map((r, i) => ({
+      id: i,
+      name: String((r[iName] && r[iName].v) || 'Program Director').trim(),
+      school: String((r[iSchool] && r[iSchool].v) || '').trim(),
+      email: String((r[iEmail] && r[iEmail].v) || '').trim(),
+      city: String((r[iCity] && r[iCity].v) || '').trim(),
+      state: String((r[iState] && r[iState].v) || '').trim(),
+      type: String((r[iType] && r[iType].v) || '').trim(),
+      status: String((r[iStatus] && r[iStatus].v) || 'Not Contacted').trim(),
+      selected: false
+    }));
+
+  renderList();
+}
+
+function getFirstName(fullName) {
+  if (!fullName) return 'Program Director';
+  const lower = fullName.toLowerCase();
+  if (lower.includes('director') || lower.includes('chair') || lower.includes('coordinator')) return 'Program Director';
+  const clean = fullName.replace(/,.*/, '').trim();
+  const skip = ['Dr.','Mr.','Ms.','Mrs.','Prof.','Dr','Mr','Ms','Mrs','Prof'];
+  for (const p of clean.split(' ')) { if (p.length > 1 && !skip.includes(p)) return p; }
+  return clean;
+}
+
+function initials(name) {
+  const clean = name.replace(/,.*/, '').trim();
+  const parts = clean.split(' ').filter(p => p.length > 1);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return clean.substring(0, 2).toUpperCase();
+}
+
+function mergeTemplate(contact) {
+  return document.getElementById('template-body').value
+    .replace(/{{director_name}}/g, getFirstName(contact.name))
+    .replace(/{{school_name}}/g, contact.school)
+    .replace(/{{program_type}}/g, contact.type)
+    .replace(/{{city}}/g, contact.city)
+    .replace(/{{state}}/g, contact.state);
+}
+
+function renderList() {
+  const filter = document.getElementById('status-filter').value;
+  const limit = parseInt(document.getElementById('daily-limit').value) || 10;
+  const todaySentCount = (sentToday[todayKey] || []).length;
+  const remaining = Math.max(0, limit - todaySentCount);
+  const pct = Math.min(100, Math.round((todaySentCount / limit) * 100));
+
+  document.getElementById('limit-label').textContent = `${todaySentCount} sent today`;
+  document.getElementById('limit-remain').textContent = `${remaining} remaining`;
+  const fill = document.getElementById('meter-fill');
+  fill.style.width = pct + '%';
+  fill.className = 'meter-fill' + (remaining === 0 ? ' full' : '');
+  document.getElementById('limit-warning').style.display = remaining === 0 ? 'block' : 'none';
+
+  const filtered = allContacts.filter(c => filter === 'all' || (c.status || 'Not Contacted') === filter);
+
+  const total = allContacts.length;
+  const notContacted = allContacts.filter(c => !c.status || c.status === 'Not Contacted').length;
+  const sent = allContacts.filter(c => c.status === 'Email Sent').length;
+  const interested = allContacts.filter(c => c.status === 'Interested' || c.status === 'Adopted').length;
+
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="stat-n">${total}</div><div class="stat-l">Total</div></div>
+    <div class="stat"><div class="stat-n">${notContacted}</div><div class="stat-l">Not contacted</div></div>
+    <div class="stat"><div class="stat-n">${sent}</div><div class="stat-l">Emails sent</div></div>
+    <div class="stat"><div class="stat-n">${interested}</div><div class="stat-l">Interested / adopted</div></div>
+  `;
+
+  document.getElementById('contact-count').textContent = filtered.length
+    ? `Showing ${filtered.length} contact${filtered.length !== 1 ? 's' : ''}`
+    : 'No contacts match this filter';
+
+  const list = document.getElementById('email-list');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><p>No contacts match this filter.</p></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(c => {
+    const wasSent = !!sentDates[c.email];
+    const subject = encodeURIComponent(document.getElementById('subject-input').value);
+    const body = encodeURIComponent(mergeTemplate(c));
+    const mailto = `mailto:${c.email}?subject=${subject}&body=${body}`;
+    const st = c.status || 'Not Contacted';
+    const badge = st === 'Not Contacted' ? `<span class="badge badge-info">Not contacted</span>`
+      : st === 'Email Sent' ? `<span class="badge badge-warn">Email sent</span>`
+      : st === 'Interested' ? `<span class="badge badge-success">Interested</span>`
+      : st === 'Declined' ? `<span class="badge badge-danger">Declined</span>`
+      : st === 'Book Sent' ? `<span class="badge badge-warn">Book sent</span>`
+      : st === 'Adopted' ? `<span class="badge badge-success">Adopted</span>`
+      : `<span class="badge badge-info">${st}</span>`;
+
+    return `<div class="email-card${c.selected ? ' selected' : ''}${wasSent ? ' dimmed' : ''}" id="card-${c.id}">
+      <div class="card-header">
+        <div class="avatar">${initials(c.name)}</div>
+        <div class="card-meta">
+          <div class="card-name">${c.name}</div>
+          <div class="card-school">${c.school}</div>
+          <div class="card-email-line">${c.email} · ${c.city}, ${c.state}</div>
+        </div>
+        <div class="card-actions">
+          ${badge}
+          <button class="btn btn-sm" onclick="togglePreview(${c.id})" title="Preview email">👁</button>
+          <button class="btn btn-sm" onclick="toggleSelect(${c.id})">${c.selected ? '☑' : '☐'}</button>
+          <a href="${mailto}" class="btn btn-sm btn-accent" onclick="markSent('${c.email}')" style="text-decoration:none">Open ↗</a>
+        </div>
+      </div>
+      <div class="preview-box" id="preview-${c.id}">${mergeTemplate(c)}<hr class="preview-divider"><div class="preview-subject"><strong>Subject:</strong> ${document.getElementById('subject-input').value}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function togglePreview(id) { document.getElementById('preview-' + id).classList.toggle('open'); }
+function toggleSelect(id) { const c = allContacts.find(x => x.id === id); if (c) { c.selected = !c.selected; renderList(); } }
+function selectAll() { const f = document.getElementById('status-filter').value; allContacts.forEach(c => { if (f === 'all' || (c.status || 'Not Contacted') === f) c.selected = true; }); renderList(); }
+function clearAll() { allContacts.forEach(c => c.selected = false); renderList(); }
+
+function markSent(email) {
+  if (!sentToday[todayKey]) sentToday[todayKey] = [];
+  if (!sentToday[todayKey].includes(email)) sentToday[todayKey].push(email);
+  sentDates[email] = new Date().toLocaleDateString();
+  try { localStorage.setItem('sy_sentToday', JSON.stringify(sentToday)); } catch(e) {}
+  try { localStorage.setItem('sy_sentDates', JSON.stringify(sentDates)); } catch(e) {}
+  setTimeout(renderList, 300);
+}
+
+function openSelected() {
+  const limit = parseInt(document.getElementById('daily-limit').value) || 10;
+  const todaySentCount = (sentToday[todayKey] || []).length;
+  const remaining = limit - todaySentCount;
+  const selected = allContacts.filter(c => c.selected);
+  const toOpen = selected.slice(0, Math.max(0, remaining));
+  if (!toOpen.length) { alert('No contacts selected, or daily limit reached.'); return; }
+  toOpen.forEach((c, i) => {
+    setTimeout(() => {
+      const subject = encodeURIComponent(document.getElementById('subject-input').value);
+      const body = encodeURIComponent(mergeTemplate(c));
+      window.open(`mailto:${c.email}?subject=${subject}&body=${body}`, '_blank');
+      markSent(c.email);
+    }, i * 500);
+  });
+  if (selected.length > toOpen.length) {
+    setTimeout(() => alert(`Daily limit reached after ${toOpen.length} email${toOpen.length !== 1 ? 's' : ''}. The remaining ${selected.length - toOpen.length} will wait until tomorrow.`), toOpen.length * 500 + 200);
+  }
+}
+
+function insertToken(token) {
+  const ta = document.getElementById('template-body');
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  ta.value = ta.value.substring(0, s) + token + ta.value.substring(e);
+  ta.selectionStart = ta.selectionEnd = s + token.length;
+  ta.focus();
+}
+
+// Auto-reconnect if previously connected
+window.addEventListener('load', () => {
+  const savedId = localStorage.getItem('sy_sheetId');
+  const savedUrl = localStorage.getItem('sy_sheetUrl');
+  if (savedId && savedUrl) {
+    document.getElementById('sheet-url').value = savedUrl;
+  }
+});
+</script>
+</body>
+</html>
